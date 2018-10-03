@@ -1,0 +1,101 @@
+---
+title: "rna_wrangle"
+author: "Jiawen Yang"
+date: "10/1/2018"
+output: html_document
+---
+##1. Install packages and import the data##
+```{r}
+#install.packages("dplyr")
+#install.packages("reshape")
+#install.packages("ggplot2")
+library("dplyr")
+library("reshape")
+library("ggplot2")
+setwd("/Users/lyn/test/RNASeqExample/RNASeqExample")
+samples<-read.csv("sample_info.csv", header = TRUE, sep = ",", quote = "\"", dec = ".", fill = TRUE, row.names = 1)
+genes<-read.csv("expression_results.csv", header = TRUE, sep = ",", quote = "\"", dec = ".", fill = TRUE, row.names = 1)
+plot(density(log2(genes$KITA_02[(genes$KITA_02>0)])))
+# row.names = 1 definded that gene names in axis or in the first column#
+```
+
+##2. Returns the density data and plot the results##
+```{r}
+#Create a density distribution of expression values within genes$KITA_02 on log scales#
+d <- density(genes$KITA_02)
+plot(d)
+#Create a density distribution of PF_BASES values within the sample_info.csv file#
+e <- density(samples$PF_BASES)
+plot(e)
+```
+
+##3.plot a scatterplot of two columns against one another##
+```{r}
+plot(log2(genes$KITA_01[(genes$KITA_01>10 |genes$KITA_03>10 )]),log2(genes$KITA_03[(genes$KITA_01>10 |genes$KITA_03>10)]))
+
+```
+
+##4. heatmap to show how well the samples correlate using the cor function##
+```{r}
+corr<-cor(genes)
+melt_corr<-melt(corr)
+head(melt_corr)
+colnames(melt_corr)<-c("Var1", "Var2", "value")
+
+ggplot(melt_corr, aes(x = Var1, y = Var2)) +
+ geom_raster(aes(fill = value)) +
+ scale_fill_gradient2(low="green", mid="white", high="red", midpoint=0.5) + theme_classic()
+
+```
+
+##5. The dendrogram##
+```{r}
+genes_transsample <- t(genes[c(rep(FALSE,19),TRUE), ])
+clusters <- hclust(dist(genes_transsample))
+plot(clusters)
+
+#do annotation on dendrograph#
+#install.packages("dendextend")
+library("dendextend")
+dend <-as.dendrogram(clusters)
+dend <-rotate(dend, 1:93)
+dend <-color_branches(dend, k=4)
+par(cex=0.5)#reduces font#
+plot(dend)
+```
+
+##6. Create a 3D principal component analysis ##
+```{r}
+setwd("/Users/lyn/test/RNASeqExample/RNASeqExample")
+samples <- read.csv("sample_info.csv",header = TRUE, sep = ",",quote = "\"" ,dec = ",", fill = TRUE, row.names = 1)
+genes <- read.csv('expression_results.csv',header = TRUE, sep = ",", quote = "\"", dec = ".", fill = TRUE, row.names = 1)
+min(genes[genes>0])
+genes.log<-log2(genes+8.05e-12)
+genes.log.small <- genes.log[seq(1, nrow(genes.log), 20), ]
+pca <- prcomp(genes.log.small,center = TRUE,scale. = TRUE)
+```
+```{r}
+std_dev <- pca$sdev
+  pr_var <- std_dev^2
+  pr_var[1:10]
+  prop_varex <- pr_var/sum(pr_var)
+```
+```{r}
+library(plotly)
+#make it a interactive chart#
+pcadf<-data.frame(pca$rotation)
+```
+```{r}
+#make it a 3D version chart##
+samples$uid<-rownames(samples)
+pcadf$uid<-rownames(pcadf)
+samples<-inner_join(samples,pcadf,by="uid")
+plot_ly(samples, x = ~PC2, y = ~PC3, z = ~PC4, size=~reads,marker = list(symbol = 'circle', sizemode = 'diameter'), sizes = c(5, 25), color = ~Kit, colors = c('#BF382A', '#0C4B8E')) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'PC2'),
+  yaxis = list(title = 'PC3'),
+  zaxis = list(title = 'PC4')))
+```
+
+
+
