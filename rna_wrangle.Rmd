@@ -4,7 +4,7 @@ author: "Jiawen Yang"
 date: "10/1/2018"
 output: html_document
 ---
-##1. Install packages and import the data##
+## 1. Install packages and import the data ##
 ```{r}
 #install.packages("dplyr")
 #install.packages("reshape")
@@ -19,7 +19,7 @@ plot(density(log2(genes$KITA_02[(genes$KITA_02>0)])))
 # row.names = 1 definded that gene names in axis or in the first column#
 ```
 
-##2. Returns the density data and plot the results##
+## 2. Returns the density data and plot the results ##
 ```{r}
 #Create a density distribution of expression values within genes$KITA_02 on log scales#
 d <- density(genes$KITA_02)
@@ -29,13 +29,13 @@ e <- density(samples$PF_BASES)
 plot(e)
 ```
 
-##3.plot a scatterplot of two columns against one another##
+## 3.plot a scatterplot of two columns against one another ##
 ```{r}
 plot(log2(genes$KITA_01[(genes$KITA_01>10 |genes$KITA_03>10 )]),log2(genes$KITA_03[(genes$KITA_01>10 |genes$KITA_03>10)]))
 
 ```
 
-##4. heatmap to show how well the samples correlate using the cor function##
+## 4. heatmap to show how well the samples correlate using the cor function ##
 ```{r}
 corr<-cor(genes)
 melt_corr<-melt(corr)
@@ -48,7 +48,7 @@ ggplot(melt_corr, aes(x = Var1, y = Var2)) +
 
 ```
 
-##5. The dendrogram##
+## 5. The dendrogram ##
 ```{r}
 genes_transsample <- t(genes[c(rep(FALSE,19),TRUE), ])
 clusters <- hclust(dist(genes_transsample))
@@ -64,7 +64,7 @@ par(cex=0.5)#reduces font#
 plot(dend)
 ```
 
-##6. Create a 3D principal component analysis ##
+## 6. Create a 3D principal component analysis ##
 ```{r}
 setwd("/Users/lyn/test/RNASeqExample/RNASeqExample")
 samples <- read.csv("sample_info.csv",header = TRUE, sep = ",",quote = "\"" ,dec = ",", fill = TRUE, row.names = 1)
